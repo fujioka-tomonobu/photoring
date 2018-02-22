@@ -1,26 +1,13 @@
-Nameあはは
+Photoring
 ====
 
 Overview
 
 ## Description
-
-## Demo
-
-## VS. 
-
-## Requirement
+Realtime photo sharing Web App
 
 ## Usage
-
-## Install
-
-## Contribution
-
-## Licence
-
-[MIT](https://github.com/tcnksm/tool/blob/master/LICENCE)
-
-## Author
-
-[tcnksm](https://github.com/tcnksm)
+git clone https://github.com/fujioka-tomonobu/photoring.git
+cd photoring
+npm install
+call ./bin/startup.bat
