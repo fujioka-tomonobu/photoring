@@ -6,6 +6,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var index = require('./routes/index');
 var photos = require('./routes/photos');
+var fs = require('fs');
 
 
 var app = express();
@@ -31,6 +32,12 @@ app.use('/socket.io', [
 
 app.use('/', index);
 app.use('/photos', photos);
+
+try {
+	fs.accessSync('storage');
+} catch (err){
+	fs.mkdirSync('storage');
+}
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
