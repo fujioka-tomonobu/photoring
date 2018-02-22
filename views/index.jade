@@ -1,0 +1,10 @@
+extends layout
+
+block content
+  script(src='javascripts/index.js')
+  h1= title
+  p Welcome to #{title}
+  div
+    input(type="file" accept="image/*;capture=camera" id="imageFile")
+  div
+    ul(id="photos")
