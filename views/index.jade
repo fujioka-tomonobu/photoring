@@ -1,10 +1,11 @@
 extends layout
 
 block content
+  link(rel='stylesheet', href='/stylesheets/index.css', media='screen')
   script(src='javascripts/index.js')
-  h1= title
-  p Welcome to #{title}
-  div test
-    input(type="file" accept="image/*" capture="camera" id="imageFile")
-  div
-    ul(id="photos")
+  form
+    div(style="width:100%;margin-bottom:10px;")
+      div#title: h1= title
+      input(type="image" src="/images/camera.png")#cameraBtn
+    div(style="clear:both;"): input(type="file" accept="image/*" capture="camera" style="display:none;")#imageFile
+    div(id="photos")

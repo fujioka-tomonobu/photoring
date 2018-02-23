@@ -22,7 +22,11 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/jquery', express.static(__dirname + '/node_modules/jquery/dist/'));
+app.use('/jquery', [
+    express.static(__dirname + '/node_modules/jquery/dist/'),
+    express.static(__dirname + '/node_modules/jquery.fancybox/source/')
+]);
+
 app.use('/socket.io', [
     express.static(__dirname + '/node_modules/socket.io/lib/'),
     express.static(__dirname + '/node_modules/socket.io-adapter/'),

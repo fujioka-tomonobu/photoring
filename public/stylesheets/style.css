@@ -1,32 +1,5 @@
 body {
-  padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
-}
-
-.orientation1 {
-}
-.orientation3 {
-	transform: rotate(-180deg);
-}
-.orientation6 {
-	transform: rotate(90deg);
-}
-.orientation8 {
-	transform: rotate(-90deg);
-}
-
-#photos {
-	display:inline-block;
-	margin-top : 30px;
-}
-
-#photos li {
-	float : left;
-	list-style :none;
-	height : 100px;
-	padding : 10px;
-}
-#photos li img {
-	max-width : 100px;
-	max-height : 100px;
+	padding: 5px;
+	font: 16px "Lucida Grande", Helvetica, Arial, sans-serif;
+	background-image: url(../images/wall.jpg);
 }

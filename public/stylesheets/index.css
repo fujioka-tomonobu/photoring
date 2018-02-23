@@ -1,0 +1,25 @@
+
+input#cameraBtn {
+	background-image: url(../images/camera.png);
+	width : 100px;
+	float:right;
+}
+
+#title {
+	float:left;
+}
+
+#photos {
+	width: 100%;
+	margin: auto;
+}
+
+.smallimage {
+	vertical-align: middle;
+	background-color: #fff;
+	border: 1px solid #CCC;
+	padding: 5px;
+	max-width : 120px;
+	max-height : 120px;
+	margin: 3px;
+}

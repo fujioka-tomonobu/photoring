@@ -23,12 +23,6 @@ router.get('/', function(req, res, next) {
 router.get('/:id', function(req, res, next) {
 	var text = fs.readFileSync('./storage/' + req.params.id, 'utf8');
 	res.send(text);
-	/*
-	var text = fs.readFileSync('./storage/' + req.params.id, 'utf8');
-	
-	res.header({"Content-Type": "image/*"});
-	res.send(JSON.parse(text).photo);
-	*/
 });
 
 module.exports = router;

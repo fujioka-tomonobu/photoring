@@ -18,41 +18,51 @@ $(function(){
 	// 写真がブロードキャストされたとき
 	values.socket.on('photo_delivery', function(data){
 		// 写真追加
-		events.addPhoto(data.orientation, data.photo);
+		events.addPhoto(data.photoId, data.photo, 'prepend');
 	});
 	
+	
+	// アイコン選択時
+	$('form').on('submit', function(e){
+		e.preventDefault();
+		// ファイル選択を押させる
+		$('#imageFile').click();
+	});
+	
+	
+	// Fileコントロールが変化したら（写真が撮影されたら）リーダに食わせる
+	$('#imageFile').on('change', function(){
+		if($(this).prop('files').length > 0) {
+			values.reader.readAsDataURL($(this).prop('files')[0]);
+		}
+	});
+	
+	
 	/*
-	 * 写真撮った時
+	 * リーダが食った後に発火
 	 */
 	$(values.reader).on('load', function(event){
 		
 		if(values.reader.result.lastIndexOf('data:image', 0) !== 0){
-			alert('画像じゃないよ');
+			alert('画像じゃないよ！！');
 			return;
 		}
 		
-		var orientation = events.getOrientation(values.reader.result);
-		
-		// 写真追加
-		events.addPhoto(orientation, values.reader.result);
-		
-		// ソケットに送信
-		values.socket.emit('photo_send',
-			{
-				orientation : orientation,
-				photo : values.reader.result
-			}
-		);
+		// 写真を回転させる
+		events.rotateImage(values.reader.result, function(rotatedPhoto){
+			
+			// 画面に写真追加
+			events.addPhoto(null, rotatedPhoto, 'prepend');
+			
+			// ソケットに送信
+			values.socket.emit('photo_send', {photo : rotatedPhoto});
+		});
 		
 	});
 	
 	
-	// 写真が選択されたらリーダに食わせる
-	$('#imageFile').on('change', function(){
-		values.reader.readAsDataURL($(this).prop('files')[0]);
-	});
 	
-	
+	// 初期表示時の画像一覧取得
 	$.ajax(
 		{
 			type: 'GET', cache : false, url: '/photos', dataType: 'json'
@@ -63,9 +73,9 @@ $(function(){
 		
 		if(response){
 			
-			response.forEach(function(id){
+			response.reverse().forEach(function(id){
 				
-				events.addPhoto(response.orientation, '' ,id)
+				events.addPhoto(id, null, 'append')
 
 				$.ajax(
 					{
@@ -74,7 +84,7 @@ $(function(){
 				// 成功時
 				).done(function(response, textStatus, jqXHR){
 					$('#' + id).prop('src', response.photo);
-					$('#' + id).addClass('orientation' + response.orientation);
+					$('#' + id).parent().prop('href', response.photo);
 					
 				// 失敗時
 				}).fail(function(jqXHR, textStatus, errorThrown){
@@ -82,13 +92,14 @@ $(function(){
 				});
 
 			});
+			
+			
 		}
 		
 	// 失敗時
 	}).fail(function(jqXHR, textStatus, errorThrown){
 		console.log(jqXHR);
 	});
-	
 	
 });
 
@@ -102,20 +113,96 @@ var events = new function(){
 	
 	
 	/**
+	 * 写真の回転
+	 */
+	this.rotateImage = function(imgB64_src, callback){
+		
+		// orientation
+		var orientation = events.getOrientation(imgB64_src);
+		
+		// Image Type
+		var img_type = imgB64_src.substring(5, imgB64_src.indexOf(";"));
+		// Source Image
+		var img = new Image();
+		
+		img.onload = function() {
+			// New Canvas
+			var canvas = document.createElement('canvas');
+			
+			// Draw (Resize)
+			var ctx = canvas.getContext('2d');
+			
+			// 向きによって縦横を逆転
+			if(orientation == 6 || orientation == 8) {
+				canvas.width = img.height;
+				canvas.height = img.width;
+			} else {
+				canvas.width = img.width;
+				canvas.height = img.height;
+			}
+			
+			// 回転軸をCanvasのど真ん中に持ってくる
+			ctx.translate( canvas.width/2, canvas.height/2 ) ;
+			
+			switch(orientation){
+				case 1 :
+					break;
+				case 3 :
+					ctx.rotate(180 * Math.PI / 180);
+					break;
+				case 6 :
+					ctx.rotate(90 * Math.PI / 180);
+					break;
+				case 8 :
+					ctx.rotate(270 * Math.PI / 180);
+					break;
+			}
+			
+			// 画像書き込み！
+			ctx.drawImage(img, -img.width/2, -img.height/2, img.width, img.height);
+			
+			// Destination Image
+			var imgB64_dst = canvas.toDataURL(img_type);
+			
+			// コールバック
+			callback(imgB64_dst);
+			
+		};
+		
+		img.src = imgB64_src;
+	}
+	
+	
+	/**
 	 * 写真の追加
 	 */
-	this.addPhoto = function(orientation, photo, id){
-		var li = $('<li>')
-				.append(
-					$('<img>', 
+	this.addPhoto = function(id, photo, appendOrPrepend){
+		var anc = $('<a>',
 						{
-							id : id,
+							class : 'fancybox',
+							href : photo
+						}
+				)
+				.append(
+					$('<img>',
+						{
+							id : (id ? id : ''),
 							src : photo,
-							class : 'orientation' + orientation
+							class : 'smallimage'
 						}
 					)
 				);
-		$('#photos').append(li);
+		anc.attr('data-fancybox-group', 'photoGroup');
+		if(appendOrPrepend === 'append'){
+			$('#photos').append(anc);
+		} else if(appendOrPrepend === 'prepend'){
+			$('#photos').prepend(anc);
+		}
+		
+		$('a.fancybox').fancybox({
+			openEffect : 'elastic',
+			closeEffect : 'elastic'
+		});
 	};
 	
 	
@@ -162,6 +249,10 @@ var events = new function(){
 				break;
 			}
 		}
+		if(!orientation){
+			return 1;
+		}
+		
 		return orientation;
 		
 	};
