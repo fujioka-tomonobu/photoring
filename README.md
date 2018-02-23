@@ -2,7 +2,7 @@ Photoring
 ====
 
 ## Description
-It's web tool that offers real time sharing photo to you.
+It's web tool that offers sharing photos in real time to you.
 
 ## Usage
 ### Install
