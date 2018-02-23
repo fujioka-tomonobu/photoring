@@ -8,6 +8,8 @@ $(function(){
 	
 	values.reader = new FileReader();
 	values.socket = io.connect();
+	values.currentPhotoId;
+	
 	
 	if (!window.File){
 		result.innerHTML = "File API 使用不可";
@@ -19,6 +21,12 @@ $(function(){
 	values.socket.on('photo_delivery', function(data){
 		// 写真追加
 		events.addPhoto(data.photoId, data.photo, 'prepend');
+	});
+	
+	// 写真の削除がブロードキャストされたとき
+	values.socket.on('photo_remove_delivery', function(data){
+		// 一覧から削除
+		$('#' + data.photoId).parent().remove();
 	});
 	
 	
@@ -51,11 +59,13 @@ $(function(){
 		// 写真を回転させる
 		events.rotateImage(values.reader.result, function(rotatedPhoto){
 			
+			var photoId = Date.now();
+			
 			// 画面に写真追加
-			events.addPhoto(null, rotatedPhoto, 'prepend');
+			events.addPhoto(photoId, rotatedPhoto, 'prepend');
 			
 			// ソケットに送信
-			values.socket.emit('photo_send', {photo : rotatedPhoto});
+			values.socket.emit('photo_send', {photoId : photoId, photo : rotatedPhoto});
 		});
 		
 	});
@@ -73,6 +83,7 @@ $(function(){
 		
 		if(response){
 			
+			// 取得した写真ID一覧を元に順番にGETしていく（一度に取ろうとすると重すぎた、、、）
 			response.reverse().forEach(function(id){
 				
 				events.addPhoto(id, null, 'append')
@@ -101,6 +112,7 @@ $(function(){
 		console.log(jqXHR);
 	});
 	
+	
 });
 
 
@@ -113,7 +125,7 @@ var events = new function(){
 	
 	
 	/**
-	 * 写真の回転
+	 * 写真をいい感じに回転させる
 	 */
 	this.rotateImage = function(imgB64_src, callback){
 		
@@ -180,7 +192,10 @@ var events = new function(){
 		var anc = $('<a>',
 						{
 							class : 'fancybox',
-							href : photo
+							href : photo,
+							'data-fancybox-group' : 'photoGroup',
+							style : 'display:none;',
+							title : 'この写真を削除する'
 						}
 				)
 				.append(
@@ -190,20 +205,48 @@ var events = new function(){
 							src : photo,
 							class : 'smallimage'
 						}
-					)
+					).on('load', function(e){
+						$(this).parent().fadeIn(500);
+					})
 				);
-		anc.attr('data-fancybox-group', 'photoGroup');
+		
 		if(appendOrPrepend === 'append'){
 			$('#photos').append(anc);
 		} else if(appendOrPrepend === 'prepend'){
 			$('#photos').prepend(anc);
 		}
 		
-		$('a.fancybox').fancybox({
-			openEffect : 'elastic',
-			closeEffect : 'elastic'
+		// 選択されたとき、その写真IDを覚えておく（後で削除させるから）
+		anc.on('click', function(e){
+			values.currentPhotoId = $(this).find('img').prop('id');
 		});
+		
+		$('a.fancybox').fancybox({
+			'openEffect' : 'elastic',
+			'closeEffect' : 'elastic',
+			'afterShow' : function(e) {
+				// 写真の削除処理
+				$('.fancybox-title').on('click', events.removePhoto);
+			}
+		});
+
 	};
+	
+	
+	/**
+	 * 写真の削除処理
+	 */
+	this.removePhoto = function(){
+		
+		// ソケットに送信
+		values.socket.emit('photo_remove_send', {photoId : values.currentPhotoId});
+		
+		$.fancybox.close();
+		
+		// 一覧から削除
+		$('#' + values.currentPhotoId).parent().remove();
+	};
+	
 	
 	
 	/**

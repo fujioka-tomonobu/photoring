@@ -13,11 +13,20 @@ this.onConnect = function(socket){
 	 * Receive photo
 	 */
 	socket.on('photo_send', function(request) {
-		var photoId = Date.now();
-		request.photoId = photoId;
 		socket.broadcast.emit('photo_delivery', request);
-		fs.writeFile('./storage/' + photoId, JSON.stringify(request, null, '    '), function(err){
+		fs.writeFile('./storage/' + request.photoId, JSON.stringify(request, null, '    '), function(err){
 			if(err) throw err;
+		});
+	});
+	
+	
+	/**
+	 * Receive Remove Request
+	 */
+	socket.on('photo_remove_send', function(request) {
+		socket.broadcast.emit('photo_remove_delivery', request);
+		
+		fs.unlink('./storage/' + request.photoId, function(err){
 		});
 	});
 };

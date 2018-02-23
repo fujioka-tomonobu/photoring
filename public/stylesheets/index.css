@@ -18,8 +18,12 @@ input#cameraBtn {
 	vertical-align: middle;
 	background-color: #fff;
 	border: 1px solid #CCC;
-	padding: 5px;
+	padding: 3px;
 	max-width : 120px;
 	max-height : 120px;
 	margin: 3px;
+}
+
+.fancybox-title {
+	cursor : pointer;
 }
