@@ -21,8 +21,20 @@ router.get('/', function(req, res, next) {
 
 /* GET photo */
 router.get('/:id', function(req, res, next) {
-	var text = fs.readFileSync('./storage/' + req.params.id, 'utf8');
-	res.send(text);
+	fs.readFile('./storage/' + req.params.id, 'utf8', function(err, text){
+		res.send(text);
+	});
+});
+
+/* POST photo */
+router.post('/', function(req, res) {
+	fs.writeFile('./storage/' + req.body.photoId, JSON.stringify(req.body, null, '    '), function(err){
+		if(err) {
+			console.log(err);
+			throw err;
+		}
+		res.send("{message : 'OK'}");
+	});
 });
 
 module.exports = router;

@@ -9,6 +9,16 @@ $(function(){
 	values.reader = new FileReader();
 	values.socket = io.connect();
 	values.currentPhotoId;
+	values.socketConnected = false;
+	
+	values.socket.on('connect', function(){
+		values.socketConnected = true;
+		$('#cameraBtn').show();
+	});
+	values.socket.on('disconnect', function(){
+		values.socketConnected = false;
+		$('#cameraBtn').hide();
+	});
 	
 	
 	if (!window.File){
@@ -17,24 +27,19 @@ $(function(){
 	}
 	
 	
-	// 写真がブロードキャストされたとき
-	values.socket.on('photo_delivery', function(data){
-		// 写真追加
-		events.addPhoto(data.photoId, data.photo, 'prepend');
-	});
-	
-	// 写真の削除がブロードキャストされたとき
-	values.socket.on('photo_remove_delivery', function(data){
-		// 一覧から削除
-		$('#' + data.photoId).parent().remove();
-	});
-	
-	
 	// アイコン選択時
 	$('form').on('submit', function(e){
+		
 		e.preventDefault();
+		
+		if(values.socketConnected == false){
+			alert('サーバとの接続が切断されているため、撮影できません。');
+			return false;
+		}
+		
 		// ファイル選択を押させる
 		$('#imageFile').click();
+		return false;
 	});
 	
 	
@@ -64,8 +69,25 @@ $(function(){
 			// 画面に写真追加
 			events.addPhoto(photoId, rotatedPhoto, 'prepend');
 			
-			// ソケットに送信
-			values.socket.emit('photo_send', {photoId : photoId, photo : rotatedPhoto});
+			// サーバに登録
+			$.ajax(
+				{
+					type: 'POST',
+					url: '/photos',
+					contentType: 'application/json',
+					data: JSON.stringify({photoId : photoId, photo : rotatedPhoto})
+				}
+
+			// 成功時
+			).done(function(data, textStatus, jqXHR){
+				
+				// ソケットに送信
+				values.socket.emit('photo_send', {photoId : photoId});
+
+			// 失敗時
+			}).fail(function(jqXHR, textStatus, errorThrown){
+				console.log(jqXHR);
+			});
 		});
 		
 	});
@@ -111,6 +133,38 @@ $(function(){
 	}).fail(function(jqXHR, textStatus, errorThrown){
 		console.log(jqXHR);
 	});
+	
+	
+	
+	
+	// 写真がブロードキャストされたとき
+	values.socket.on('photo_delivery', function(data){
+		
+		$.ajax(
+			{
+				type: 'GET', cache : false, url: '/photos/' + data.photoId, dataType: 'json'
+			}
+		// 成功時
+		).done(function(response, textStatus, jqXHR){
+			
+			// 写真追加
+			events.addPhoto(response.photoId, response.photo, 'prepend');
+			
+		// 失敗時
+		}).fail(function(jqXHR, textStatus, errorThrown){
+			console.log(jqXHR);
+		});
+		
+	});
+	
+	
+	
+	// 写真の削除がブロードキャストされたとき
+	values.socket.on('photo_remove_delivery', function(data){
+		// 一覧から削除
+		$('#' + data.photoId).parent().remove();
+	});
+	
 	
 	
 });

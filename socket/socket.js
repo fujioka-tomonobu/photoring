@@ -14,9 +14,6 @@ this.onConnect = function(socket){
 	 */
 	socket.on('photo_send', function(request) {
 		socket.broadcast.emit('photo_delivery', request);
-		fs.writeFile('./storage/' + request.photoId, JSON.stringify(request, null, '    '), function(err){
-			if(err) throw err;
-		});
 	});
 	
 	
@@ -25,7 +22,6 @@ this.onConnect = function(socket){
 	 */
 	socket.on('photo_remove_send', function(request) {
 		socket.broadcast.emit('photo_remove_delivery', request);
-		
 		fs.unlink('./storage/' + request.photoId, function(err){
 		});
 	});
