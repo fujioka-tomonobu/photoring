@@ -1,12 +1,30 @@
 
+.header {
+	width:100%;
+	margin-bottom:10px;
+}
+
+#slideshowBtn {
+	cursor : pointer;
+	float:right;
+}
+#slideshowBtn img{
+	width : 60px;
+}
+
 input#cameraBtn {
 	background-image: url(../images/camera.png);
-	width : 100px;
+	cursor : pointer;
+	width : 80px;
 	float:right;
 }
 
 #title {
 	float:left;
+}
+
+#imageFile {
+	display :none;
 }
 
 #photos {
@@ -26,4 +44,25 @@ input#cameraBtn {
 
 .fancybox-title {
 	cursor : pointer;
+}
+
+#slideshow {
+	position : fixed;
+	top : 0;
+	left : 0;
+	background-color : #000000;
+	height : 100%;
+	width : 100%;
+	display : none;
+	text-align : center;
+}
+
+#slideshowCloseBtn {
+	float:right;
+	margin : 10px 10px 10px 10px;
+}
+
+#slidePhoto {
+	vertical-align: middle;
+	display : none;
 }

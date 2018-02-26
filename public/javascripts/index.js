@@ -9,6 +9,7 @@ $(function(){
 	values.reader = new FileReader();
 	values.socket = io.connect();
 	values.currentPhotoId;
+	values.slideshowIntervalId;
 	values.socketConnected = false;
 	
 	values.socket.on('connect', function(){
@@ -26,8 +27,21 @@ $(function(){
 		return;
 	}
 	
+	$(window).on('resize', function(e){
+		$('#slidePhoto').css({
+			'max-height' : $(window).height() + 'px',
+			'max-width' : '100%'
+		});
+	});
 	
-	// アイコン選択時
+	// スライドショー開始
+	$('#slideshowBtn').on('click', events.startSlideShow);
+	// スライドショー終了
+	$('#slideshowCloseBtn').on('click', events.closeSlideShow);
+	
+	
+	
+	// カメラアイコン選択時
 	$('form').on('submit', function(e){
 		
 		e.preventDefault();
@@ -352,5 +366,68 @@ var events = new function(){
 		
 		return orientation;
 		
+	};
+	
+	
+	/**
+	 * スライドショー開始
+	 */
+	this.startSlideShow = function(e){
+		$('#slideshow').fadeIn(400);
+		
+		$('#slidePhoto').on('load', function(){
+			$(this).fadeIn(400);
+		});
+		
+		// リサイズでもやってるけど、ここでも一応やる
+		$('#slidePhoto').css({
+			'max-height' : $(window).height() + 'px',
+			'max-width' : '100%'
+		});
+		
+		// 写真は削除される可能性あるので面倒くさいことをする
+		var photos = $('.smallimage');
+		var currentPhotoId = photos.eq(0).prop('id');
+		
+		// 表示
+		var img = $('.smallimage').eq(0).prop('src');
+		$('#slidePhoto').prop('src', img);
+		
+		// ４秒ごとに切替
+		values.slideshowIntervalId = setInterval(function(){
+			
+			$('#slidePhoto').fadeOut(400, function(){
+				var photos = $('.smallimage');
+				var nextPhotoIndex = 0;
+				// 次の表示対象を探す
+				photos.each(function(idx, target){
+					if(target.id == currentPhotoId){
+						nextPhotoIndex = idx + 1;
+						return false;
+					}
+				});
+				
+				if(nextPhotoIndex >= photos.length){
+					nextPhotoIndex = 0;
+				}
+				
+				currentPhotoId = photos.eq(nextPhotoIndex).prop('id');
+				
+				// 写真切り替え
+				var img = photos.eq(nextPhotoIndex).prop('src');
+				$('#slidePhoto').prop('src', img);
+			});
+		
+		}, 4000)
+	};
+	
+	
+	/**
+	 * スライドショー終了
+	 */
+	this.closeSlideShow = function(e){
+		clearInterval(values.slideshowIntervalId);
+		$('#slideshow').fadeOut(400);
+		$('#slidePhoto').fadeOut(400);
 	};
 };

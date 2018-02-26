@@ -4,8 +4,13 @@ block content
   link(rel='stylesheet', href='/stylesheets/index.css', media='screen')
   script(src='javascripts/index.js')
   form
-    div(style="width:100%;margin-bottom:10px;")
+    div.header
       div#title: h1= title
+      a#slideshowBtn: img(type="image" src="/images/slideshow.png")
       input(type="image" src="/images/camera.png")#cameraBtn
-    div(style="clear:both;"): input(type="file" accept="image/*" capture="camera" style="display:none;")#imageFile
+    div(style="clear:both;"): input(type="file" accept="image/*" capture="camera")#imageFile
     div(id="photos")
+    div#slideshow
+      div.header
+        a#slideshowCloseBtn: img(type="image" src="/images/fancy_closebox.png")
+        img#slidePhoto
