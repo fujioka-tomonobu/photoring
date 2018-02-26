@@ -13,9 +13,9 @@ npm install
 ```
 
 ### Settings
-Defining port number in startup.bat.
+Defining port number in ./bin/www (default 80.)
 
 ### Run
 ```sh
-call ./bin/startup.bat
+npm start
 ```
