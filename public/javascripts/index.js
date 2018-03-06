@@ -6,6 +6,20 @@ var values = new function(){};
 $(function(){
 	'use strict';
 	
+	if(!window.File){
+		alert('このブラウザではご利用になれません。');
+		return;
+	}
+	
+	// キーイベント
+	$("body").keydown( function(e) {
+		var keycode = e.which ? e.which : e.keyCode;
+		if(keycode == 27){
+			events.closeSlideShow(e);
+		}
+	});
+	
+	
 	values.reader = new FileReader();
 	values.socket = io.connect();
 	values.currentPhotoId;
@@ -15,17 +29,14 @@ $(function(){
 	values.socket.on('connect', function(){
 		values.socketConnected = true;
 		$('#cameraBtn').show();
+		$('#slideshowBtn').show();
 	});
 	values.socket.on('disconnect', function(){
 		values.socketConnected = false;
 		$('#cameraBtn').hide();
+		$('#slideshowBtn').hide();
 	});
 	
-	
-	if (!window.File){
-		result.innerHTML = "File API 使用不可";
-		return;
-	}
 	
 	$(window).on('resize', function(e){
 		$('#slidePhoto').css({
@@ -71,7 +82,7 @@ $(function(){
 	$(values.reader).on('load', function(event){
 		
 		if(values.reader.result.lastIndexOf('data:image', 0) !== 0){
-			alert('画像じゃないよ！！');
+			alert('画像データ以外を扱うことはできません。');
 			return;
 		}
 		
@@ -278,6 +289,7 @@ var events = new function(){
 					})
 				);
 		
+		// 追加する
 		if(appendOrPrepend === 'append'){
 			$('#photos').append(anc);
 		} else if(appendOrPrepend === 'prepend'){
@@ -426,8 +438,11 @@ var events = new function(){
 	 * スライドショー終了
 	 */
 	this.closeSlideShow = function(e){
-		clearInterval(values.slideshowIntervalId);
-		$('#slideshow').fadeOut(400);
-		$('#slidePhoto').fadeOut(400);
+		if(values.slideshowIntervalId){
+			clearInterval(values.slideshowIntervalId);
+			values.slideshowIntervalId = null;
+			$('#slideshow').fadeOut(400);
+			$('#slidePhoto').fadeOut(400);
+		}
 	};
 };

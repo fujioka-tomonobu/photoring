@@ -38,6 +38,13 @@ app.use('/socket.io', [
     express.static(__dirname + '/node_modules/socket.io-parser/')
 ]);
 
+/*
+app.use('/bootstrap', [
+    express.static(__dirname + '/node_modules/bootstrap/dist/'),
+    express.static(__dirname + '/node_modules/bootstrap-toggle/')
+]);
+*/
+
 app.use('/', index);
 app.use('/photos', photos);
 
