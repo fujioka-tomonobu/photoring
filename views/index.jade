@@ -5,7 +5,7 @@ block content
   script(src='javascripts/index.js')
   form
     div.header
-      div#title: h1= title
+      div#title: span=title
       a#slideshowBtn: img(type="image" src="/images/slideshow.png")
       input(type="image" src="/images/camera.png")#cameraBtn
     div(style="clear:both;"): input(type="file" accept="image/*" capture="camera")#imageFile
