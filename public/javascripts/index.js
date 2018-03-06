@@ -137,7 +137,7 @@ $(function(){
 
 				$.ajax(
 					{
-						type: 'GET', cache : false, url: '/photos/' + id, dataType: 'json'
+						type: 'GET', cache : true, url: '/photos/' + id, dataType: 'json'
 					}
 				// 成功時
 				).done(function(response, textStatus, jqXHR){
