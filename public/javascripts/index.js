@@ -6,6 +6,17 @@ var values = new function(){};
 $(function(){
 	'use strict';
 	
+	//デバイス判定（タッチが有効か否か）
+	var isTouchDevice = (('ontouchstart' in window) || window.DocumentTouch && document instanceof DocumentTouch);
+	//デバイス判定によるイベントの決定
+	var eventType = (isTouchDevice) ? 'touchend' : 'click';
+	
+	values.eventType = eventType;
+	values.reader = new FileReader();
+	values.socket = io.connect();
+	values.slideshowIntervalId;
+	values.socketConnected = false;
+	
 	if(!window.File){
 		alert('このブラウザではご利用になれません。');
 		return;
@@ -18,12 +29,6 @@ $(function(){
 			events.closeSlideShow(e);
 		}
 	});
-	
-	
-	values.reader = new FileReader();
-	values.socket = io.connect();
-	values.slideshowIntervalId;
-	values.socketConnected = false;
 	
 	values.socket.on('connect', function(){
 		values.socketConnected = true;
@@ -47,7 +52,7 @@ $(function(){
 	// スライドショー開始
 	//$('#slideshowBtn').on('click', events.startSlideShow);
 	// スライドショー終了
-	$('#slideshowCloseBtn').on('click', events.closeSlideShow);
+	$('#slideshowCloseBtn').on(values.eventType, events.closeSlideShow);
 	
 	
 	
@@ -311,12 +316,12 @@ var events = new function(){
 			],
 			btnTpl : {
 				remove : 
-					'<a class="fancybox-button" title="Remove photo" onclick="events.removePhoto()">' +
+					'<a class="fancybox-button" title="Remove photo" on' + values.eventType + '="events.removePhoto()">' +
 						'<span style="vertical-align:middle;"><img src="/images/trash.png"></span>' +
 					'</a>',
 
 				slideShow : 
-					'<button class="fancybox-button fancybox-button--play" title="Start slideshow" onclick="events.startSlideShow()">' + 
+					'<button class="fancybox-button fancybox-button--play" title="Start slideshow" on' + values.eventType + '="events.startSlideShow()">' + 
 						'<svg viewBox="0 0 40 40"><path d="M13,12 L27,20 L13,27 Z"></path><path d="M15,10 v19 M23,10 v19"></path></svg>' + 
 					'</button>'
 			}
@@ -330,6 +335,38 @@ var events = new function(){
 	 * 写真の削除処理
 	 */
 	this.removePhoto = function(){
+	/*	
+$( "#dialog-confirm" ).dialog({
+
+      resizable: false,
+
+      height: "auto",
+
+      width: 400,
+
+      modal: true,
+
+      buttons: {
+
+        "Delete all items": function() {
+
+          $( this ).dialog( "close" );
+
+        },
+
+        Cancel: function() {
+
+          $( this ).dialog( "close" );
+
+        }
+
+      }
+
+    });
+    */
+    window.confirm('Remove photo... OK?');
+
+		/*
 		var instance = $.fancybox.getInstance();
 		var photoId = instance.current.opts.options;
 		
@@ -341,7 +378,7 @@ var events = new function(){
 		
 		// 一覧から削除
 		$('#' + photoId).parent().remove();
-		
+		*/
 	};
 	
 	

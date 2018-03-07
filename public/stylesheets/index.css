@@ -103,3 +103,7 @@ input#cameraBtn {
 .zoomIn {
 	transform: scale(1.2);
 }
+
+#dialog-confirm {
+	z-index : 2147483647;
+}
