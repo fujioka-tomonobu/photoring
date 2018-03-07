@@ -4,12 +4,31 @@ block content
   link(rel='stylesheet', href='/stylesheets/index.css', media='screen')
   script(src='javascripts/index.js')
   form
+    
+    //- コルクボード
     div.header
       div#title: span=title
-      a#slideshowBtn: img(type="image" src="/images/slideshow.png")
+      //- a#slideshowBtn: img(type="image" src="/images/slideshow.png")
       input(type="image" src="/images/camera.png")#cameraBtn
     div(style="clear:both;"): input(type="file" accept="image/*" capture="camera")#imageFile
     div(id="photos")
+    
+    //- スライドショー速度設定
+    div#slideshowSpeed
+      div.pretty.p-default.p-curve
+        input(type="radio" name="icon_solid")
+        div.state.p-primary-o
+          label: あいうえお
+      div.pretty.p-default.p-curve
+        input(type="radio" name="icon_solid")
+        div.state.p-primary-o
+          label: あいうえお
+      div.pretty.p-default.p-curve
+        input(type="radio" name="icon_solid")
+        div.state.p-primary-o
+          label: あいうえお
+    
+    //- スライドショー
     div#slideshow
       a#slideshowCloseBtn: img(type="image" src="/images/fancy_closebox.png")
       div

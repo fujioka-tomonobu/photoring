@@ -22,7 +22,6 @@ $(function(){
 	
 	values.reader = new FileReader();
 	values.socket = io.connect();
-	values.currentPhotoId;
 	values.slideshowIntervalId;
 	values.socketConnected = false;
 	
@@ -46,7 +45,7 @@ $(function(){
 	});
 	
 	// スライドショー開始
-	$('#slideshowBtn').on('click', events.startSlideShow);
+	//$('#slideshowBtn').on('click', events.startSlideShow);
 	// スライドショー終了
 	$('#slideshowCloseBtn').on('click', events.closeSlideShow);
 	
@@ -272,9 +271,10 @@ var events = new function(){
 						{
 							class : 'fancybox',
 							href : photo,
-							'data-fancybox-group' : 'photoGroup',
+							'data-fancybox' : 'group',
 							style : 'display:none;',
-							title : 'この写真を削除する'
+							//'data-options' : '{photoId : '+ id + '}'
+							'data-options' : id
 						}
 				)
 				.append(
@@ -296,20 +296,33 @@ var events = new function(){
 			$('#photos').prepend(anc);
 		}
 		
-		// 選択されたとき、その写真IDを覚えておく（後で削除させるから）
-		anc.on('click', function(e){
-			values.currentPhotoId = $(this).find('img').prop('id');
-		});
-		
 		$('a.fancybox').fancybox({
-			'openEffect' : 'elastic',
-			'closeEffect' : 'elastic',
-			'afterShow' : function(e) {
-				// 写真の削除処理
-				$('.fancybox-title').on('click', events.removePhoto);
+			animationEffect : "fade",
+			transitionEffect : "slide",
+			infobar : true,
+			toolbar : true,
+			arrows : true,
+			buttons : [
+				'slideShow',
+				'thumbs',
+				'download',
+				'remove',
+				'close'
+			],
+			btnTpl : {
+				remove : 
+					'<a class="fancybox-button" title="Remove photo" onclick="events.removePhoto()">' +
+						'<span style="vertical-align:middle;"><img src="/images/trash.png"></span>' +
+					'</a>',
+
+				slideShow : 
+					'<button class="fancybox-button fancybox-button--play" title="Start slideshow" onclick="events.startSlideShow()">' + 
+						'<svg viewBox="0 0 40 40"><path d="M13,12 L27,20 L13,27 Z"></path><path d="M15,10 v19 M23,10 v19"></path></svg>' + 
+					'</button>'
 			}
 		});
-
+		
+		
 	};
 	
 	
@@ -317,14 +330,18 @@ var events = new function(){
 	 * 写真の削除処理
 	 */
 	this.removePhoto = function(){
+		var instance = $.fancybox.getInstance();
+		var photoId = instance.current.opts.options;
+		
 		
 		// ソケットに送信
-		values.socket.emit('photo_remove_send', {photoId : values.currentPhotoId});
+		values.socket.emit('photo_remove_send', {photoId : photoId});
 		
 		$.fancybox.close();
 		
 		// 一覧から削除
-		$('#' + values.currentPhotoId).parent().remove();
+		$('#' + photoId).parent().remove();
+		
 	};
 	
 	
@@ -385,32 +402,61 @@ var events = new function(){
 	 * スライドショー開始
 	 */
 	this.startSlideShow = function(e){
+		
+		var instance = $.fancybox.getInstance();
+		var currentPhotoId = instance.current.opts.options;
+		var nextPhotoIndex = 0;
+		
+		$.fancybox.close();
+		
 		$('#slideshow').fadeIn(400);
 		
-		$('#slidePhoto').on('load', function(){
-			$(this).fadeIn(400);
-		});
+		var zoomTime = 1000;
+		var slideTime = 7000;
 		
-		// リサイズでもやってるけど、ここでも一応やる
-		$('#slidePhoto').css({
-			'max-height' : $(window).height() + 'px',
-			'max-width' : '100%'
+		var isZoomIn = false;
+		$('#slidePhoto').on('load', function(){
+			
+			$(this)
+				.fadeIn(zoomTime)
+				.removeClass('zoomIn');
+			
+			if(!isZoomIn){
+				$(this).addClass('zoomIn');
+			}
+			
+			isZoomIn = !isZoomIn;
 		});
 		
 		// 写真は削除される可能性あるので面倒くさいことをする
 		var photos = $('.smallimage');
-		var currentPhotoId = photos.eq(0).prop('id');
+		photos.each(function(idx, target){
+			if(target.id == currentPhotoId){
+				nextPhotoIndex = idx;
+				return false;
+			}
+		});
+		
+		if(nextPhotoIndex >= photos.length){
+			nextPhotoIndex = 0;
+		}
 		
 		// 表示
-		var img = $('.smallimage').eq(0).prop('src');
-		$('#slidePhoto').prop('src', img);
-		
+		var img = $('.smallimage').eq(nextPhotoIndex).prop('src');
+		$('#slidePhoto')
+			.prop('src', img)
+			.css({
+					'transition' : 'transform ' + (zoomTime + slideTime)/1000 + 's linear',
+					'max-height' : ($(window).height()) + 'px',
+					'max-width'  : '100%'
+			});
+				
 		// ４秒ごとに切替
 		values.slideshowIntervalId = setInterval(function(){
 			
-			$('#slidePhoto').fadeOut(400, function(){
+			$('#slidePhoto').fadeOut(zoomTime, function(){
 				var photos = $('.smallimage');
-				var nextPhotoIndex = 0;
+				
 				// 次の表示対象を探す
 				photos.each(function(idx, target){
 					if(target.id == currentPhotoId){
@@ -430,7 +476,7 @@ var events = new function(){
 				$('#slidePhoto').prop('src', img);
 			});
 		
-		}, 4000)
+		}, slideTime + zoomTime);
 	};
 	
 	
@@ -442,7 +488,8 @@ var events = new function(){
 			clearInterval(values.slideshowIntervalId);
 			values.slideshowIntervalId = null;
 			$('#slideshow').fadeOut(400);
-			$('#slidePhoto').fadeOut(400);
+			$('#slidePhoto').removeClass('zoomIn').fadeOut(400);
 		}
 	};
+
 };

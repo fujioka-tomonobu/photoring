@@ -26,10 +26,6 @@ app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
 
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/jquery', [
-    express.static(__dirname + '/node_modules/jquery/dist/'),
-    express.static(__dirname + '/node_modules/jquery.fancybox/source/')
-]);
 
 app.use('/socket.io', [
     express.static(__dirname + '/node_modules/socket.io/lib/'),
@@ -38,12 +34,9 @@ app.use('/socket.io', [
     express.static(__dirname + '/node_modules/socket.io-parser/')
 ]);
 
-/*
-app.use('/bootstrap', [
-    express.static(__dirname + '/node_modules/bootstrap/dist/'),
-    express.static(__dirname + '/node_modules/bootstrap-toggle/')
+app.use('/pretty-checkbox', [
+    express.static(__dirname + '/node_modules/pretty-checkbox/')
 ]);
-*/
 
 app.use('/', index);
 app.use('/photos', photos);

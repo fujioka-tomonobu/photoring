@@ -58,6 +58,10 @@ input#cameraBtn {
 	cursor : pointer;
 }
 
+#slideshowSpeed {
+	display : none;
+}
+
 #slideshow {
 	position : fixed;
 	top : 0;
@@ -94,4 +98,8 @@ input#cameraBtn {
 	left: 0;
 	margin: auto;
 	z-index : 1;
+}
+
+.zoomIn {
+	transform: scale(1.2);
 }
