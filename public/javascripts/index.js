@@ -433,7 +433,7 @@ var events = new function(){
 		$('#slideshow').fadeIn(400);
 		
 		var zoomTime = 1000;
-		var slideTime = 7000;
+		var slideTime = 5000;
 		
 		var isZoomIn = false;
 		$('#slidePhoto').on('load', function(){
@@ -481,13 +481,13 @@ var events = new function(){
 				// 次の表示対象を探す
 				photos.each(function(idx, target){
 					if(target.id == currentPhotoId){
-						nextPhotoIndex = idx + 1;
+						nextPhotoIndex = idx - 1;
 						return false;
 					}
 				});
 				
-				if(nextPhotoIndex >= photos.length){
-					nextPhotoIndex = 0;
+				if(nextPhotoIndex < 0 ){
+					nextPhotoIndex = photos.length - 1;
 				}
 				
 				currentPhotoId = photos.eq(nextPhotoIndex).prop('id');
