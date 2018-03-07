@@ -6,11 +6,12 @@ block content
   form
     
     //- 削除確認
-    #dialog-confirm(title="Empty the recycle bin?" style="display:none;")
+    #dialog-confirm(title="" style="display:none;")
       p
         span.ui-icon.ui-icon-alert(style="float:left; margin:12px 12px 20px 0;")
-        'These items will be permanently deleted and cannot be recovered. Are you sure?'
-        
+        | Are you sure you want to delete this photo?
+    
+    
     //- コルクボード
     .header
       #title: span=title
@@ -18,6 +19,7 @@ block content
       input(type="image" src="/images/camera.png")#cameraBtn
     div(style="clear:both;"): input(type="file" accept="image/*" capture="camera")#imageFile
     #photos
+    
     
     //- スライドショー
     #slideshow

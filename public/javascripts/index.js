@@ -278,7 +278,6 @@ var events = new function(){
 							href : photo,
 							'data-fancybox' : 'group',
 							style : 'display:none;',
-							//'data-options' : '{photoId : '+ id + '}'
 							'data-options' : id
 						}
 				)
@@ -290,7 +289,7 @@ var events = new function(){
 							class : 'smallimage'
 						}
 					).on('load', function(e){
-						$(this).parent().fadeIn(500);
+						$(this).parent().fadeIn(200);
 					})
 				);
 		
@@ -335,50 +334,35 @@ var events = new function(){
 	 * 写真の削除処理
 	 */
 	this.removePhoto = function(){
-	/*	
-$( "#dialog-confirm" ).dialog({
-
-      resizable: false,
-
-      height: "auto",
-
-      width: 400,
-
-      modal: true,
-
-      buttons: {
-
-        "Delete all items": function() {
-
-          $( this ).dialog( "close" );
-
-        },
-
-        Cancel: function() {
-
-          $( this ).dialog( "close" );
-
-        }
-
-      }
-
-    });
-    */
-    window.confirm('Remove photo... OK?');
-
-		/*
-		var instance = $.fancybox.getInstance();
-		var photoId = instance.current.opts.options;
 		
+		$("#dialog-confirm").dialog({
+			resizable: false,
+			height: "auto",
+			width: '80%',
+			modal: true,
+			dialogClass: 'noTitleDialog',
+			buttons: {
+				"Delete": function() {
+					
+					var instance = $.fancybox.getInstance();
+					var photoId = instance.current.opts.options;
+					
+					// ソケットに送信
+					values.socket.emit('photo_remove_send', {photoId : photoId});
+					
+					$.fancybox.close();
+					
+					// 一覧から削除
+					$('#' + photoId).parent().remove();
 		
-		// ソケットに送信
-		values.socket.emit('photo_remove_send', {photoId : photoId});
+					$( this ).dialog( "close" );
+				},
+				Cancel: function() {
+					$( this ).dialog( "close" );
+				}
+			}
+		});
 		
-		$.fancybox.close();
-		
-		// 一覧から削除
-		$('#' + photoId).parent().remove();
-		*/
 	};
 	
 	
