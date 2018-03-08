@@ -16,29 +16,25 @@ $(function(){
 	values.socket = io.connect();
 	values.slideshowIntervalId;
 	values.socketConnected = false;
-	
-	if(!window.File){
-		alert('このブラウザではご利用になれません。');
-		return;
-	}
+	values.cameraUsable = window.File;
 	
 	// キーイベント
 	$("body").keydown( function(e) {
 		var keycode = e.which ? e.which : e.keyCode;
-		if(keycode == 27){
+		if(keycode == 27 || keycode == 8){
 			events.closeSlideShow(e);
 		}
 	});
 	
 	values.socket.on('connect', function(){
 		values.socketConnected = true;
-		$('#cameraBtn').show();
-		$('#slideshowBtn').show();
+		if(values.cameraUsable){
+			$('#cameraBtn').show();
+		}
 	});
 	values.socket.on('disconnect', function(){
 		values.socketConnected = false;
 		$('#cameraBtn').hide();
-		$('#slideshowBtn').hide();
 	});
 	
 	
@@ -195,7 +191,22 @@ $(function(){
 	});
 	
 	
-	
+	// カメラが使えないブラウザだったら
+	if(!values.cameraUsable){
+		$('#cameraBtn').hide();
+		$("#dialog-UnsupportedBrowser").dialog({
+			resizable: false,
+			height: "auto",
+			width: '80%',
+			modal: true,
+			buttons: {
+				"OK": function() {
+					$( this ).dialog( "close" );
+				}
+			}
+		});
+		return;
+	}
 });
 
 
@@ -429,7 +440,6 @@ var events = new function(){
 			height: "auto",
 			width: '300px',
 			modal: true,
-			//dialogClass: 'noTitleDialog',
 			buttons: {
 				"Start": function() {
 					

@@ -6,6 +6,12 @@ block content
   form
     
     //- 削除確認
+    #dialog-UnsupportedBrowser(title="Sorry...", style="display:none;")
+      p
+        span.ui-icon.ui-icon-alert(style="float:left; margin:12px 12px 20px 0;")
+        | Your browser does not support cameras. You can only see.
+        
+    //- 削除確認
     #dialog-confirm(style="display:none;")
       p
         span.ui-icon.ui-icon-alert(style="float:left; margin:12px 12px 20px 0;")
