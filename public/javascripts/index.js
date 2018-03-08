@@ -424,80 +424,102 @@ var events = new function(){
 	 */
 	this.startSlideShow = function(e){
 		
-		var instance = $.fancybox.getInstance();
-		var currentPhotoId = instance.current.opts.options;
-		var nextPhotoIndex = 0;
-		
-		$.fancybox.close();
-		
-		$('#slideshow').fadeIn(400);
-		
-		var zoomTime = 1000;
-		var slideTime = 5000;
-		
-		var isZoomIn = false;
-		$('#slidePhoto').on('load', function(){
-			
-			$(this)
-				.fadeIn(zoomTime)
-				.removeClass('zoomIn');
-			
-			if(!isZoomIn){
-				$(this).addClass('zoomIn');
-			}
-			
-			isZoomIn = !isZoomIn;
-		});
-		
-		// 写真は削除される可能性あるので面倒くさいことをする
-		var photos = $('.smallimage');
-		photos.each(function(idx, target){
-			if(target.id == currentPhotoId){
-				nextPhotoIndex = idx;
-				return false;
-			}
-		});
-		
-		if(nextPhotoIndex >= photos.length){
-			nextPhotoIndex = 0;
-		}
-		
-		// 表示
-		var img = $('.smallimage').eq(nextPhotoIndex).prop('src');
-		$('#slidePhoto')
-			.prop('src', img)
-			.css({
-					'transition' : 'transform ' + (zoomTime + slideTime)/1000 + 's linear',
-					'max-height' : ($(window).height()) + 'px',
-					'max-width'  : '100%'
-			});
-				
-		// ４秒ごとに切替
-		values.slideshowIntervalId = setInterval(function(){
-			
-			$('#slidePhoto').fadeOut(zoomTime, function(){
-				var photos = $('.smallimage');
-				
-				// 次の表示対象を探す
-				photos.each(function(idx, target){
-					if(target.id == currentPhotoId){
-						nextPhotoIndex = idx - 1;
-						return false;
+		$("#dialog-showspeed").dialog({
+			resizable: false,
+			height: "auto",
+			width: '300px',
+			modal: true,
+			//dialogClass: 'noTitleDialog',
+			buttons: {
+				"Start": function() {
+					
+					var speed = $('input[name=speed]:checked').val();
+					
+					$( this ).dialog( "close" );
+					
+					var instance = $.fancybox.getInstance();
+					var currentPhotoId = instance.current.opts.options;
+					var nextPhotoIndex = 0;
+					
+					$.fancybox.close();
+					
+					$('#slideshow').fadeIn(400);
+					
+					var zoomTime = 1000;
+					var slideTime = speed * 1000;
+					
+					var isZoomIn = false;
+					$('#slidePhoto').on('load', function(){
+						
+						$(this)
+							.fadeIn(zoomTime)
+							.removeClass('zoomIn');
+						
+						if(!isZoomIn){
+							$(this).addClass('zoomIn');
+						}
+						
+						isZoomIn = !isZoomIn;
+					});
+					
+					// 写真は削除される可能性あるので面倒くさいことをする
+					var photos = $('.smallimage');
+					photos.each(function(idx, target){
+						if(target.id == currentPhotoId){
+							nextPhotoIndex = idx;
+							return false;
+						}
+					});
+					
+					if(nextPhotoIndex >= photos.length){
+						nextPhotoIndex = 0;
 					}
-				});
+					
+					// 表示
+					var img = $('.smallimage').eq(nextPhotoIndex).prop('src');
+					$('#slidePhoto')
+						.prop('src', img)
+						.css({
+								'transition' : 'transform ' + (zoomTime + slideTime)/1000 + 's linear',
+								'max-height' : ($(window).height()) + 'px',
+								'max-width'  : '100%'
+						});
+							
+					// ４秒ごとに切替
+					values.slideshowIntervalId = setInterval(function(){
+						
+						$('#slidePhoto').fadeOut(zoomTime, function(){
+							var photos = $('.smallimage');
+							
+							// 次の表示対象を探す
+							photos.each(function(idx, target){
+								if(target.id == currentPhotoId){
+									nextPhotoIndex = idx - 1;
+									return false;
+								}
+							});
+							
+							if(nextPhotoIndex < 0 ){
+								nextPhotoIndex = photos.length - 1;
+							}
+							
+							currentPhotoId = photos.eq(nextPhotoIndex).prop('id');
+							
+							// 写真切り替え
+							var img = photos.eq(nextPhotoIndex).prop('src');
+							$('#slidePhoto').prop('src', img);
+						});
+					
+					}, slideTime + zoomTime);
 				
-				if(nextPhotoIndex < 0 ){
-					nextPhotoIndex = photos.length - 1;
+				
+				},
+				Cancel: function() {
+					$( this ).dialog( "close" );
 				}
-				
-				currentPhotoId = photos.eq(nextPhotoIndex).prop('id');
-				
-				// 写真切り替え
-				var img = photos.eq(nextPhotoIndex).prop('src');
-				$('#slidePhoto').prop('src', img);
-			});
+			}
+		});
 		
-		}, slideTime + zoomTime);
 	};
 	
 	

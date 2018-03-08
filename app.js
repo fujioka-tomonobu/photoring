@@ -33,10 +33,11 @@ app.use('/socket.io', [
     express.static(__dirname + '/node_modules/socket.io-client/dist/'),
     express.static(__dirname + '/node_modules/socket.io-parser/')
 ]);
-
+/*
 app.use('/pretty-checkbox', [
     express.static(__dirname + '/node_modules/pretty-checkbox/')
 ]);
+*/
 
 app.use('/', index);
 app.use('/photos', photos);

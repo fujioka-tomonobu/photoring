@@ -6,12 +6,33 @@ block content
   form
     
     //- 削除確認
-    #dialog-confirm(title="" style="display:none;")
+    #dialog-confirm(style="display:none;")
       p
         span.ui-icon.ui-icon-alert(style="float:left; margin:12px 12px 20px 0;")
         | Are you sure you want to delete this photo?
     
-    
+    //- スライドショー速度指定
+    #dialog-showspeed(title="Select turn speed.", style="display:none;")
+      p
+        div(style="padding:20px;")
+          .pretty.p-default.p-curve
+            input(type="radio",name="speed" value="3")
+            .state.p-primary-o
+              label
+                | Fast
+        div(style="padding:20px;")
+          .pretty.p-default.p-curve
+            input(type="radio",name="speed" value="5" checked="checked")
+            .state.p-success-o
+              label
+                | Normal
+        div(style="padding:20px;")
+          .pretty.p-default.p-curve
+            input(type="radio",name="speed" value="8")
+            .state.p-warning-o
+              label
+                | Slowly
+
     //- コルクボード
     .header
       #title: span=title
