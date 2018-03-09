@@ -405,8 +405,8 @@ var events = new function(){
 			],
 			btnTpl : {
 				remove : 
-					'<a class="fancybox-button" title="Remove photo" on' + values.eventType + '="events.showRemoveConfirm()">' +
-						'<span style="vertical-align:middle;"><img src="/images/trash.png"></span>' +
+					'<a style="position: relative;" class="fancybox-button" title="Remove photo" on' + values.eventType + '="events.showRemoveConfirm()">' +
+						'<span><img style="position: absolute;top: 0;right: 0;bottom: 0;left: 0;margin: auto;" width="18" src="/images/trash.png"></span>' +
 					'</a>',
 
 				slideShow : 
