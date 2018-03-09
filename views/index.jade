@@ -5,11 +5,11 @@ block content
   script(src='javascripts/index.js')
   form
     
-    //- 削除確認
-    #dialog-UnsupportedBrowser(title="Sorry...", style="display:none;")
+    //- 汎用アラート
+    #dialog-Alert(title="", style="display:none;")
       p
         span.ui-icon.ui-icon-alert(style="float:left; margin:12px 12px 20px 0;")
-        | Your browser does not support cameras. You can only see.
+        span.alertMessage: | 
         
     //- 削除確認
     #dialog-confirm(style="display:none;")
@@ -20,19 +20,19 @@ block content
     //- スライドショー速度指定
     #dialog-showspeed(title="Select turn speed.", style="display:none;")
       p
-        div(style="padding:20px;")
+        div(style="padding:5px;")
           .pretty.p-default.p-curve
             input(type="radio",name="speed" value="3")
             .state.p-primary-o
               label
                 | Fast
-        div(style="padding:20px;")
+        div(style="padding:5px;")
           .pretty.p-default.p-curve
             input(type="radio",name="speed" value="5" checked="checked")
             .state.p-success-o
               label
                 | Normal
-        div(style="padding:20px;")
+        div(style="padding:5px;")
           .pretty.p-default.p-curve
             input(type="radio",name="speed" value="8")
             .state.p-warning-o

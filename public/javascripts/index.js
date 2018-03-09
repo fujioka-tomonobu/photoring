@@ -1,7 +1,8 @@
 var values = new function(){};
 
-/*
+/* ------------------------------------------------------------------------------------
  * ロード処理
+ * ------------------------------------------------------------------------------------
  */
 $(function(){
 	'use strict';
@@ -16,7 +17,7 @@ $(function(){
 	values.socket = io.connect();
 	values.slideshowIntervalId;
 	values.socketConnected = false;
-	values.cameraUsable = window.File;
+	values.cameraUsable = (window.File != null && window.File != undefined);
 	
 	// キーイベント
 	$("body").keydown( function(e) {
@@ -45,12 +46,9 @@ $(function(){
 		});
 	});
 	
-	// スライドショー開始
-	//$('#slideshowBtn').on('click', events.startSlideShow);
+	
 	// スライドショー終了
 	$('#slideshowCloseBtn').on(values.eventType, events.closeSlideShow);
-	
-	
 	
 	// カメラアイコン選択時
 	$('form').on('submit', function(e){
@@ -82,7 +80,8 @@ $(function(){
 	$(values.reader).on('load', function(event){
 		
 		if(values.reader.result.lastIndexOf('data:image', 0) !== 0){
-			alert('画像データ以外を扱うことはできません。');
+			events.alert("Selection error", "This file not covered. Please choose a photo.");
+			//alert('画像データ以外を扱うことはできません。');
 			return;
 		}
 		
@@ -111,6 +110,7 @@ $(function(){
 
 			// 失敗時
 			}).fail(function(jqXHR, textStatus, errorThrown){
+				events.alert("Upload failed", "This photo has not been saved.");
 				console.log(jqXHR);
 			});
 		});
@@ -194,32 +194,50 @@ $(function(){
 	// カメラが使えないブラウザだったら
 	if(!values.cameraUsable){
 		$('#cameraBtn').hide();
-		$("#dialog-UnsupportedBrowser").dialog({
-			resizable: false,
-			height: "auto",
-			width: '80%',
-			modal: true,
-			buttons: {
-				"OK": function() {
-					$( this ).dialog( "close" );
-				}
-			}
-		});
+		events.alert("Sorry...", "Your browser does not support cameras. You can only see.");
 		return;
 	}
 });
 
 
 
-/*
+/* ------------------------------------------------------------------------------------
  * 画面イベント
+ * ------------------------------------------------------------------------------------
  */
 var events = new function(){
 	'use strict';
 	
 	
-	/**
+	/* -----------------------------------------------
+	 * アラート表示
+	 * -----------------------------------------------
+	 */
+	this.alert = function(title, message, callback){
+		
+		$("#dialog-Alert span.alertMessage").html(message);
+		$("#dialog-Alert").prop("title", title);
+		$("#dialog-Alert").dialog({
+			resizable: false,
+			height: "auto",
+			width: '80%',
+			modal: true,
+			buttons: {
+				"OK": function() {
+					if(callback){
+						callback(this);
+					}else{
+						$( this ).dialog( "close" );
+					}
+				}
+			}
+		});
+	};
+	
+	
+	/* -----------------------------------------------
 	 * 写真をいい感じに回転させる
+	 * -----------------------------------------------
 	 */
 	this.rotateImage = function(imgB64_src, callback){
 		
@@ -279,8 +297,64 @@ var events = new function(){
 	}
 	
 	
-	/**
+	
+	/* -----------------------------------------------
+	 * jpegの向き取得
+	 * -----------------------------------------------
+	 */
+	this.getOrientation = function(imgDataURL){
+		
+		var byteString = atob(imgDataURL.split(',')[1]);
+		var head = 0;
+		var orientation;
+		
+		while (1){
+			if (byteString.charCodeAt(head) == 255 & byteString.charCodeAt(head + 1) == 218) {
+				break;
+			}
+			
+			if (byteString.charCodeAt(head) == 255 & byteString.charCodeAt(head + 1) == 216) {
+				head += 2;
+			} else {
+				var length = byteString.charCodeAt(head + 2) * 256 + byteString.charCodeAt(head + 3);
+				var endPoint = head + length + 2;
+				if (byteString.charCodeAt(head) == 255 & byteString.charCodeAt(head + 1) == 225) {
+					var segment = byteString.slice(head, endPoint);
+					var bigEndian = segment.charCodeAt(10) == 77;
+					var count;
+					if (bigEndian) {
+						count = segment.charCodeAt(18) * 256 + segment.charCodeAt(19);
+					} else {
+						count = segment.charCodeAt(18) + segment.charCodeAt(19) * 256;
+					}
+					for (var i=0; i < count; i++){
+						var field = segment.slice(20 + 12 * i, 32 + 12 * i);
+						if ((bigEndian && field.charCodeAt(1) == 18) || (!bigEndian && field.charCodeAt(0) == 18)) {
+							orientation = bigEndian ? field.charCodeAt(9) : field.charCodeAt(8);
+						}
+					}
+					break;
+				}
+				head = endPoint;
+			}
+			
+			if (head > byteString.length){
+				break;
+			}
+		}
+		if(!orientation){
+			return 1;
+		}
+		
+		return orientation;
+		
+	};
+	
+	
+	
+	/* -----------------------------------------------
 	 * 写真の追加
+	 * -----------------------------------------------
 	 */
 	this.addPhoto = function(id, photo, appendOrPrepend){
 		var anc = $('<a>',
@@ -341,8 +415,9 @@ var events = new function(){
 	};
 	
 	
-	/**
+	/* -----------------------------------------------
 	 * 写真の削除処理
+	 * -----------------------------------------------
 	 */
 	this.removePhoto = function(){
 		
@@ -378,60 +453,9 @@ var events = new function(){
 	
 	
 	
-	/**
-	 * jpegの向き取得
-	 */
-	this.getOrientation = function(imgDataURL){
-		
-		var byteString = atob(imgDataURL.split(',')[1]);
-		var head = 0;
-		var orientation;
-		
-		while (1){
-			if (byteString.charCodeAt(head) == 255 & byteString.charCodeAt(head + 1) == 218) {
-				break;
-			}
-			
-			if (byteString.charCodeAt(head) == 255 & byteString.charCodeAt(head + 1) == 216) {
-				head += 2;
-			} else {
-				var length = byteString.charCodeAt(head + 2) * 256 + byteString.charCodeAt(head + 3);
-				var endPoint = head + length + 2;
-				if (byteString.charCodeAt(head) == 255 & byteString.charCodeAt(head + 1) == 225) {
-					var segment = byteString.slice(head, endPoint);
-					var bigEndian = segment.charCodeAt(10) == 77;
-					var count;
-					if (bigEndian) {
-						count = segment.charCodeAt(18) * 256 + segment.charCodeAt(19);
-					} else {
-						count = segment.charCodeAt(18) + segment.charCodeAt(19) * 256;
-					}
-					for (var i=0; i < count; i++){
-						var field = segment.slice(20 + 12 * i, 32 + 12 * i);
-						if ((bigEndian && field.charCodeAt(1) == 18) || (!bigEndian && field.charCodeAt(0) == 18)) {
-							orientation = bigEndian ? field.charCodeAt(9) : field.charCodeAt(8);
-						}
-					}
-					break;
-				}
-				head = endPoint;
-			}
-			
-			if (head > byteString.length){
-				break;
-			}
-		}
-		if(!orientation){
-			return 1;
-		}
-		
-		return orientation;
-		
-	};
-	
-	
-	/**
+	/* -----------------------------------------------
 	 * スライドショー開始
+	 * -----------------------------------------------
 	 */
 	this.startSlideShow = function(e){
 		
@@ -533,8 +557,9 @@ var events = new function(){
 	};
 	
 	
-	/**
+	/* -----------------------------------------------
 	 * スライドショー終了
+	 * -----------------------------------------------
 	 */
 	this.closeSlideShow = function(e){
 		if(values.slideshowIntervalId){
