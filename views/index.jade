@@ -4,40 +4,28 @@ block content
   link(rel='stylesheet', href='/stylesheets/index.css', media='screen')
   script(src='javascripts/index.js')
   form
-    
+  
     //- 汎用アラート
-    #dialog-Alert(title="", style="display:none;")
-      p
-        span.ui-icon.ui-icon-alert(style="float:left; margin:12px 12px 20px 0;")
-        span.alertMessage: | 
-        
-    //- 削除確認
-    #dialog-confirm(style="display:none;")
-      p
-        span.ui-icon.ui-icon-alert(style="float:left; margin:12px 12px 20px 0;")
-        | Are you sure you want to delete this photo?
+    #dialog-alert.modal(tabindex="-1",role="dialog")
+      .modal-dialog(role="document")
+        .modal-content
+          .modal-header
+            h5.modal-title: | Select turn speed.
+            button.close(type="button", data-dismiss="modal" aria-label="Close")
+          .modal-body
+            p: | 　
+          .modal-footer
+            button.btn.btn-secondary(type="button" data-dismiss="modal"): | Close
     
-    //- スライドショー速度指定
-    #dialog-showspeed(title="Select turn speed.", style="display:none;")
-      p
-        div(style="padding:5px;")
-          .pretty.p-default.p-curve
-            input(type="radio",name="speed" value="3")
-            .state.p-primary-o
-              label
-                | Fast
-        div(style="padding:5px;")
-          .pretty.p-default.p-curve
-            input(type="radio",name="speed" value="5" checked="checked")
-            .state.p-success-o
-              label
-                | Normal
-        div(style="padding:5px;")
-          .pretty.p-default.p-curve
-            input(type="radio",name="speed" value="8")
-            .state.p-warning-o
-              label
-                | Slowly
+    //- 削除確認
+    #dialog-deleteConfirm.modal(tabindex="-1",role="dialog")
+      .modal-dialog(role="document")
+        .modal-content
+          .modal-body
+            p: | Are you sure you want to delete this photo?
+          .modal-footer
+            button#deletePhotoBtn.btn.btn-primary(type="button"): | Sure
+            button.btn.btn-secondary(type="button" data-dismiss="modal"): | Close
 
     //- コルクボード
     .header
@@ -46,6 +34,37 @@ block content
       input(type="image" src="/images/camera.png")#cameraBtn
     div(style="clear:both;"): input(type="file" accept="image/*" capture="camera")#imageFile
     #photos
+    
+    
+    //- スライドショー速度指定
+    #dialog-showspeed.modal(tabindex="-1",role="dialog")
+      .modal-dialog(role="document")
+        .modal-content
+          .modal-header
+            h5.modal-title: | Select turn speed.
+            button.close(type="button", data-dismiss="modal" aria-label="Close")
+          .modal-body
+            div(style="padding:5px;")
+              .pretty.p-default.p-curve
+                input(type="radio",name="speed" value="3")
+                .state.p-primary-o
+                  label
+                    | Fast
+            div(style="padding:5px;")
+              .pretty.p-default.p-curve
+                input(type="radio",name="speed" value="5" checked="checked")
+                .state.p-success-o
+                  label
+                    | Normal
+            div(style="padding:5px;")
+              .pretty.p-default.p-curve
+                input(type="radio",name="speed" value="8")
+                .state.p-warning-o
+                  label
+                    | Slowly
+          .modal-footer
+            button#startSlideShowBtn.btn.btn-primary(type="button"): | Start
+            button.btn.btn-secondary(type="button" data-dismiss="modal"): | Close
     
     
     //- スライドショー

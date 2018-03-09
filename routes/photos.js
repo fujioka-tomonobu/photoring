@@ -19,6 +19,11 @@ router.get('/', function(req, res, next) {
 	
 });
 
+/* GET photoId */
+router.get('/photoId', function(req, res, next) {
+	res.send({photoId : Date.now()});
+});
+
 /* GET photo */
 router.get('/:id', function(req, res, next) {
 	fs.readFile('./storage/' + req.params.id, 'utf8', function(err, text){
@@ -28,26 +33,13 @@ router.get('/:id', function(req, res, next) {
 
 /* POST photo */
 router.post('/', function(req, res) {
-	
-	req.body.photoId = Date.now();
-	
 	fs.writeFile('./storage/' + req.body.photoId, JSON.stringify(req.body, null, '    '), function(err){
 		if(err) {
 			console.log(err);
 			throw err;
 		}
-		res.send({message : 'OK', photoId : req.body.photoId});
+		res.send({message : 'OK', photoId: req.body.photoId});
 	});
-	
-	/*
-	fs.writeFile('./storage/' + req.body.photoId, JSON.stringify(req.body, null, '    '), function(err){
-		if(err) {
-			console.log(err);
-			throw err;
-		}
-		res.send("{message : 'OK'}");
-	});
-	*/
 });
 
 module.exports = router;

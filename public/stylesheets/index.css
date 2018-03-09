@@ -104,5 +104,4 @@ input#cameraBtn {
 	transform: scale(1.2);
 }
 
-.ui-dialog { z-index: 2147483647 !important ;}
-.noTitleDialog .ui-dialog-titlebar {display:none;}
+.modal { z-index: 2147483647 !important ;}

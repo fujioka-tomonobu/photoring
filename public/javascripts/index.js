@@ -46,9 +46,13 @@ $(function(){
 		});
 	});
 	
-	
+	// 写真削除
+	$('#deletePhotoBtn').on(values.eventType, events.removePhoto);
+	// スライドショー開始
+	$('#startSlideShowBtn').on(values.eventType, events.startSlideShow);
 	// スライドショー終了
 	$('#slideshowCloseBtn').on(values.eventType, events.closeSlideShow);
+	
 	
 	// カメラアイコン選択時
 	$('form').on('submit', function(e){
@@ -80,38 +84,52 @@ $(function(){
 	$(values.reader).on('load', function(event){
 		
 		if(values.reader.result.lastIndexOf('data:image', 0) !== 0){
-			events.alert("Selection error", "This file not covered. Please choose a photo.");
-			//alert('画像データ以外を扱うことはできません。');
+			events.alert("Selection error", "Your file not covered. Please choose a photo.");
 			return;
 		}
 		
 		// 写真を回転させる
 		events.rotateImage(values.reader.result, function(rotatedPhoto){
 			
-			// サーバに登録
+			// まずはphotoIdの取得
 			$.ajax(
-				{
-					type: 'POST',
-					url: '/photos',
-					contentType: 'application/json',
-					data: JSON.stringify({photo : rotatedPhoto}),
-					dataType: 'json'
-				}
-
+				{type: 'GET', cache : true, url: '/photos/photoId', dataType: 'json'}
+				
 			// 成功時
 			).done(function(response, textStatus, jqXHR){
 				
 				// 画面に写真追加
 				events.addPhoto(response.photoId, rotatedPhoto, 'prepend');
-				
-				// ソケットに送信（他のみんなにブロードキャスト）
-				values.socket.emit('photo_send', {photoId : response.photoId});
+					
+				// サーバに登録
+				$.ajax(
+					{
+						type: 'POST',
+						url: '/photos',
+						contentType: 'application/json',
+						data: JSON.stringify({photo : rotatedPhoto, photoId : response.photoId}),
+						dataType: 'json'
+					}
 
+				// 成功時
+				).done(function(response, textStatus, jqXHR){
+					
+					// ソケットに送信（他のみんなにブロードキャスト）
+					values.socket.emit('photo_send', {photoId : response.photoId});
+
+				// 失敗時
+				}).fail(function(jqXHR, textStatus, errorThrown){
+					events.alert("Upload failed", "This photo has not been saved.");
+					console.log(jqXHR);
+				});
+				
+				
 			// 失敗時
 			}).fail(function(jqXHR, textStatus, errorThrown){
-				events.alert("Upload failed", "This photo has not been saved.");
+				events.alert("Numbering failed", "This photo has not been saved.");
 				console.log(jqXHR);
 			});
+			
 		});
 		
 	});
@@ -196,6 +214,7 @@ $(function(){
 		events.alert("Sorry...", "Your browser does not support cameras. You can only see.");
 		return;
 	}
+	
 });
 
 
@@ -214,23 +233,10 @@ var events = new function(){
 	 */
 	this.alert = function(title, message, callback){
 		
-		$("#dialog-Alert span.alertMessage").html(message);
-		$("#dialog-Alert").prop("title", title);
-		$("#dialog-Alert").dialog({
-			resizable: false,
-			height: "auto",
-			width: '80%',
-			modal: true,
-			buttons: {
-				"OK": function() {
-					if(callback){
-						callback(this);
-					}else{
-						$( this ).dialog( "close" );
-					}
-				}
-			}
-		});
+		$("#dialog-alert .modal-header .modal-title").html(title);
+		$("#dialog-alert .modal-body p").html(message);
+		$("#dialog-alert").modal('show');
+		
 	};
 	
 	
@@ -399,12 +405,12 @@ var events = new function(){
 			],
 			btnTpl : {
 				remove : 
-					'<a class="fancybox-button" title="Remove photo" on' + values.eventType + '="events.removePhoto()">' +
+					'<a class="fancybox-button" title="Remove photo" on' + values.eventType + '="events.showRemoveConfirm()">' +
 						'<span style="vertical-align:middle;"><img src="/images/trash.png"></span>' +
 					'</a>',
 
 				slideShow : 
-					'<button class="fancybox-button fancybox-button--play" title="Start slideshow" on' + values.eventType + '="events.startSlideShow()">' + 
+					'<button class="fancybox-button fancybox-button--play" title="Start slideshow" on' + values.eventType + '="events.selectSlideShowSpeed()">' + 
 						'<svg viewBox="0 0 40 40"><path d="M13,12 L27,20 L13,27 Z"></path><path d="M15,10 v19 M23,10 v19"></path></svg>' + 
 					'</button>'
 			}
@@ -415,143 +421,129 @@ var events = new function(){
 	
 	
 	/* -----------------------------------------------
+	 * 写真の削除確認ダイアログを開く
+	 * -----------------------------------------------
+	 */
+	this.showRemoveConfirm = function(){
+		$("#dialog-deleteConfirm").modal('show');
+	};
+	
+	
+	/* -----------------------------------------------
 	 * 写真の削除処理
 	 * -----------------------------------------------
 	 */
 	this.removePhoto = function(){
 		
-		$("#dialog-confirm").dialog({
-			resizable: false,
-			height: "auto",
-			width: '80%',
-			modal: true,
-			dialogClass: 'noTitleDialog',
-			buttons: {
-				"Delete": function() {
-					
-					var instance = $.fancybox.getInstance();
-					var photoId = instance.current.opts.options;
-					
-					// ソケットに送信
-					values.socket.emit('photo_remove_send', {photoId : photoId});
-					
-					$.fancybox.close();
-					
-					// 一覧から削除
-					$('#' + photoId).parent().remove();
+		var instance = $.fancybox.getInstance();
+		var photoId = instance.current.opts.options;
 		
-					$( this ).dialog( "close" );
-				},
-				Cancel: function() {
-					$( this ).dialog( "close" );
-				}
-			}
-		});
+		// ソケットに送信
+		values.socket.emit('photo_remove_send', {photoId : photoId});
 		
+		$.fancybox.close();
+		
+		// 一覧から削除
+		$('#' + photoId).parent().remove();
+
+		$("#dialog-deleteConfirm").modal("hide");
 	};
 	
+	
+	/* -----------------------------------------------
+	 * スライドショー速度指定ダイアログを開く
+	 * -----------------------------------------------
+	 */
+	this.selectSlideShowSpeed = function(){
+		$("#dialog-showspeed").modal('show');
+	};
 	
 	
 	/* -----------------------------------------------
 	 * スライドショー開始
 	 * -----------------------------------------------
 	 */
-	this.startSlideShow = function(e){
+	this.startSlideShow = function(){
 		
-		$("#dialog-showspeed").dialog({
-			resizable: false,
-			height: "auto",
-			width: '300px',
-			modal: true,
-			buttons: {
-				"Start": function() {
-					
-					var speed = $('input[name=speed]:checked').val();
-					
-					$( this ).dialog( "close" );
-					
-					var instance = $.fancybox.getInstance();
-					var currentPhotoId = instance.current.opts.options;
-					var nextPhotoIndex = 0;
-					
-					$.fancybox.close();
-					
-					$('#slideshow').fadeIn(400);
-					
-					var zoomTime = 1000;
-					var slideTime = speed * 1000;
-					
-					var isZoomIn = false;
-					$('#slidePhoto').on('load', function(){
-						
-						$(this)
-							.fadeIn(zoomTime)
-							.removeClass('zoomIn');
-						
-						if(!isZoomIn){
-							$(this).addClass('zoomIn');
-						}
-						
-						isZoomIn = !isZoomIn;
-					});
-					
-					// 写真は削除される可能性あるので面倒くさいことをする
-					var photos = $('.smallimage');
-					photos.each(function(idx, target){
-						if(target.id == currentPhotoId){
-							nextPhotoIndex = idx;
-							return false;
-						}
-					});
-					
-					if(nextPhotoIndex >= photos.length){
-						nextPhotoIndex = 0;
-					}
-					
-					// 表示
-					var img = $('.smallimage').eq(nextPhotoIndex).prop('src');
-					$('#slidePhoto')
-						.prop('src', img)
-						.css({
-								'transition' : 'transform ' + (zoomTime + slideTime)/1000 + 's linear',
-								'max-height' : ($(window).height()) + 'px',
-								'max-width'  : '100%'
-						});
-							
-					// ４秒ごとに切替
-					values.slideshowIntervalId = setInterval(function(){
-						
-						$('#slidePhoto').fadeOut(zoomTime, function(){
-							var photos = $('.smallimage');
-							
-							// 次の表示対象を探す
-							photos.each(function(idx, target){
-								if(target.id == currentPhotoId){
-									nextPhotoIndex = idx - 1;
-									return false;
-								}
-							});
-							
-							if(nextPhotoIndex < 0 ){
-								nextPhotoIndex = photos.length - 1;
-							}
-							
-							currentPhotoId = photos.eq(nextPhotoIndex).prop('id');
-							
-							// 写真切り替え
-							var img = photos.eq(nextPhotoIndex).prop('src');
-							$('#slidePhoto').prop('src', img);
-						});
-					
-					}, slideTime + zoomTime);
-				
-				
-				},
-				Cancel: function() {
-					$( this ).dialog( "close" );
-				}
+		$("#dialog-showspeed").modal('hide');
+
+		var speed = $('input[name=speed]:checked').val();
+		
+		var instance = $.fancybox.getInstance();
+		var currentPhotoId = instance.current.opts.options;
+		var nextPhotoIndex = 0;
+		
+		$.fancybox.close();
+		
+		$('#slideshow').fadeIn(400);
+		
+		var zoomTime = 1000;
+		var slideTime = speed * 1000;
+		
+		var isZoomIn = false;
+		$('#slidePhoto').on('load', function(){
+			
+			$(this)
+				.fadeIn(zoomTime)
+				.removeClass('zoomIn');
+			
+			if(!isZoomIn){
+				$(this).addClass('zoomIn');
+			}
+			
+			isZoomIn = !isZoomIn;
+		});
+		
+		// 写真は削除される可能性あるので面倒くさいことをする
+		var photos = $('.smallimage');
+		photos.each(function(idx, target){
+			if(target.id == currentPhotoId){
+				nextPhotoIndex = idx;
+				return false;
 			}
 		});
+		
+		if(nextPhotoIndex >= photos.length){
+			nextPhotoIndex = 0;
+		}
+		
+		// 表示
+		var img = $('.smallimage').eq(nextPhotoIndex).prop('src');
+		$('#slidePhoto')
+			.prop('src', img)
+			.css({
+					'transition' : 'transform ' + (zoomTime + slideTime)/1000 + 's linear',
+					'max-height' : ($(window).height()) + 'px',
+					'max-width'  : '100%'
+			});
+				
+		// ４秒ごとに切替
+		values.slideshowIntervalId = setInterval(function(){
+			
+			$('#slidePhoto').fadeOut(zoomTime, function(){
+				var photos = $('.smallimage');
+				
+				// 次の表示対象を探す
+				photos.each(function(idx, target){
+					if(target.id == currentPhotoId){
+						nextPhotoIndex = idx - 1;
+						return false;
+					}
+				});
+				
+				if(nextPhotoIndex < 0 ){
+					nextPhotoIndex = photos.length - 1;
+				}
+				
+				currentPhotoId = photos.eq(nextPhotoIndex).prop('id');
+				
+				// 写真切り替え
+				var img = photos.eq(nextPhotoIndex).prop('src');
+				$('#slidePhoto').prop('src', img);
+			});
+		
+		}, slideTime + zoomTime);
+		
 		
 	};
 	
