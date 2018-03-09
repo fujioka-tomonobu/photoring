@@ -88,25 +88,24 @@ $(function(){
 		// 写真を回転させる
 		events.rotateImage(values.reader.result, function(rotatedPhoto){
 			
-			var photoId = Date.now();
-			
-			// 画面に写真追加
-			events.addPhoto(photoId, rotatedPhoto, 'prepend');
-			
 			// サーバに登録
 			$.ajax(
 				{
 					type: 'POST',
 					url: '/photos',
 					contentType: 'application/json',
-					data: JSON.stringify({photoId : photoId, photo : rotatedPhoto})
+					data: JSON.stringify({photo : rotatedPhoto}),
+					dataType: 'json'
 				}
 
 			// 成功時
-			).done(function(data, textStatus, jqXHR){
+			).done(function(response, textStatus, jqXHR){
 				
-				// ソケットに送信
-				values.socket.emit('photo_send', {photoId : photoId});
+				// 画面に写真追加
+				events.addPhoto(response.photoId, rotatedPhoto, 'prepend');
+				
+				// ソケットに送信（他のみんなにブロードキャスト）
+				values.socket.emit('photo_send', {photoId : response.photoId});
 
 			// 失敗時
 			}).fail(function(jqXHR, textStatus, errorThrown){
@@ -133,7 +132,7 @@ $(function(){
 			// 取得した写真ID一覧を元に順番にGETしていく（一度に取ろうとすると重すぎた、、、）
 			response.reverse().forEach(function(id){
 				
-				events.addPhoto(id, null, 'append')
+				events.addPhoto(id, null, 'append');
 
 				$.ajax(
 					{
